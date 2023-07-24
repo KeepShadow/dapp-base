@@ -27,7 +27,7 @@ const CollectionConfig: CollectionConfigInterface = {
     price: 0.06,
     maxMintAmountPerTx: 50,
   },
-  contractAddress: "0xe8886Be43646b4b91E39C5040776941fc7e40Da9",
+  contractAddress: "0xD8F95DFBa0a1a668697Fb62BfE1D484ED277493b",
   walletConnectProjectId: "54b86bafe334a726226e97077e25c877",
   marketplaceIdentifier: "hanzo-avatars",
   marketplaceConfig: Marketplaces.openSea,

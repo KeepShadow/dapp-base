@@ -15,7 +15,8 @@ contract InfectedDalmatian is ERC721AQueryable, Ownable, ReentrancyGuard, ERC298
   using Strings for uint256;
 
   bytes32 public merkleRoot;
-  mapping(address => bool) public whitelistClaimed;
+  /* mapping(address => bool) public whitelistClaimed; */
+  mapping(address => uint) public alreadyMinted;
 
   string public uriPrefix = '';
   string public uriSuffix = '.json';
@@ -40,6 +41,7 @@ contract InfectedDalmatian is ERC721AQueryable, Ownable, ReentrancyGuard, ERC298
     string memory _tokenSymbol,
     uint256 _cost,
     uint256 _maxSupply,
+    uint256 _whitelistSupply,
     uint256 _maxMintAmountPerTx,
     string memory _hiddenMetadataUri,
     address _royaltyReceiver,
@@ -48,6 +50,7 @@ contract InfectedDalmatian is ERC721AQueryable, Ownable, ReentrancyGuard, ERC298
   ) ERC721A(_tokenName, _tokenSymbol) {
     setCost(_cost);
     maxSupply = _maxSupply;
+    whitelistSupply = _whitelistSupply;
     treasury = _treasury;
     setMaxMintAmountPerTx(_maxMintAmountPerTx);
     setHiddenMetadataUri(_hiddenMetadataUri);
@@ -65,16 +68,16 @@ contract InfectedDalmatian is ERC721AQueryable, Ownable, ReentrancyGuard, ERC298
     _;
   }
 
-  function whitelistMint(uint256 _mintAmount, bytes32[] calldata _merkleProof) public payable mintCompliance(_mintAmount) mintPriceCompliance(_mintAmount) {
+  function whitelistMint(uint256 _availableToMint, bytes32[] calldata _merkleProof, uint256 _mintAmount) public payable mintCompliance(_mintAmount) mintPriceCompliance(_mintAmount) {
     // Verify whitelist requirements
-    require(whitelistMintEnabled, 'The whitelist sale is not enabled!');
-    require(!whitelistClaimed[_msgSender()], 'Address already claimed!');
-    bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender, _mintAmount))));
-    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), 'Invalid proof!');
-    require(whitelistMinted + _mintAmount <= whitelistSupply, 'Minting Phase Supply reached!');
-
+    require(whitelistMintEnabled, "The whitelist sale is not enabled!");
+    bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender, _availableToMint))));
+    require(MerkleProof.verify(_merkleProof, merkleRoot, leaf), "Invalid proof!");
+    require(whitelistMinted + _mintAmount <= whitelistSupply, "Minting Phase Supply reached!");
+    require(_mintAmount <= _availableToMint - alreadyMinted[_msgSender()], "Mint Amount limit exceeded.");
+ 
+    alreadyMinted[_msgSender()] += _mintAmount;
     whitelistMinted += _mintAmount;
-    whitelistClaimed[_msgSender()] = true;
     _safeMint(_msgSender(), _mintAmount);
   }
 

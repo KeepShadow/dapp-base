@@ -34,7 +34,7 @@ interface State {
   isWhitelistMintEnabled: boolean;
   isUserInWhitelist: boolean;
   amountAllowed: number;
-  alreadyClaimed: boolean;
+  alreadyMintedAmount: number;
   merkleProofManualAddressStatus: boolean|null;
   errorMessage: string|JSX.Element|null;
 }
@@ -54,7 +54,7 @@ const defaultState: State = {
   isWhitelistMintEnabled: false,
   isUserInWhitelist: false,
   amountAllowed: 0,
-  alreadyClaimed: false,
+  alreadyMintedAmount: 0,
   merkleProofManualAddressStatus: null,
   errorMessage: null
 }
@@ -103,7 +103,7 @@ export const useWeb3 = defineStore('Web3', {
         isWhitelistMintEnabled: await this.contract.read.whitelistMintEnabled([]),
         isUserInWhitelist: Whitelist.contains(this.userAddress ?? ''),
         amountAllowed: Whitelist.getAmountAllowed(this.userAddress ?? ''),
-        alreadyClaimed: await this.contract.read.whitelistClaimed([this.userAddress ?? ''])
+        alreadyMintedAmount: await this.contract.read.alreadyMinted([this.userAddress ?? ''])
       })
 
       this.initDone = true
@@ -186,6 +186,7 @@ export const useWeb3 = defineStore('Web3', {
       await waitForTransaction({ hash })
 
       this.totalSupply = Number(await this.contract.read.totalSupply([]))
+      this.alreadyMintedAmount = await this.contract.read.alreadyMinted([this.userAddress ?? ''])
 
       toast.info(`
         <p>Success!</p>
@@ -221,7 +222,7 @@ export const useWeb3 = defineStore('Web3', {
         const { request } = await prepareWriteContract({
           ...contractConf,
           functionName: 'whitelistMint',
-          args: [BigInt(amount), Whitelist.getProofForAddress(this.userAddress!) as `0x${string}`[]],
+          args: [BigInt(this.amountAllowed), Whitelist.getProofForAddress(this.userAddress!) as `0x${string}`[], BigInt(amount)],
           value
         })
 
@@ -248,7 +249,7 @@ export const useWeb3 = defineStore('Web3', {
       return this.maxSupply !== 0 && this.totalSupply >= this.maxSupply
     },
     isNotMainnet (): boolean {
-      return this.network !== null && this.network.chainId !== CollectionConfig.testnet.chainId
+      return this.network !== null && this.network.chainId !== CollectionConfig.mainnet.chainId
     },
     generateContractUrl (): string {
       return this.networkConfig.blockExplorer.generateContractUrl(CollectionConfig.contractAddress!)

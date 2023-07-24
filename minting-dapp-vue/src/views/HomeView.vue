@@ -31,7 +31,7 @@
     <img id="logo" src="../assets/plain_typo.png" alt="Logo Hanzo" />
 
     <div v-if="Web3.isNotMainnet" class="alert alert-warning" role="alert">
-      You are not connected to the Ethereum network. <span class="small">Current network: <strong>{{Web3.network?.name}}</strong></span>
+      You are not connected to Polygon Mainnet. <span class="small">Current network: <strong>{{Web3.network?.name}}</strong></span>
     </div>
 
     <div v-if="Web3.errorMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -44,7 +44,7 @@
         <collection-status />
         <mint-widget v-if="!Web3.isSoldOut"/>
         <div v-else>
-          <h2>Hanzo Avatars have been <strong>sold out</strong>! <span class="emoji">🥳</span></h2>
+          <h2>Collection is <strong>sold out</strong>! <span class="emoji">🥳</span></h2>
           You can buy from our beloved holders on <a :href="Web3.generateMarketplaceUrl" target="_blank">{{Web3.marketPlaceName}}</a>.
         </div>
       </div>
