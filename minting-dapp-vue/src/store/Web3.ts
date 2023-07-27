@@ -4,7 +4,8 @@ import { EthereumClient, w3mConnectors } from '@web3modal/ethereum'
 import { Web3Modal } from '@web3modal/html'
 import { configureChains, createConfig, getContract, prepareWriteContract, writeContract, waitForTransaction } from '@wagmi/core'
 import { polygonMumbai } from '@wagmi/core/chains'
-import { publicProvider } from '@wagmi/core/providers/public'
+/* import { publicProvider } from '@wagmi/core/providers/public' */
+import { jsonRpcProvider } from '@wagmi/core/providers/jsonRpc'
 import { toast } from 'vue3-toastify'
 
 import NetworkConfigInterface from '../../../smart-contract/lib/NetworkConfigInterface'
@@ -63,7 +64,13 @@ const projectId = CollectionConfig.walletConnectProjectId as string
 
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [polygonMumbai],
-  [publicProvider()]
+  [
+    jsonRpcProvider({
+      rpc: () => ({
+        http: 'https://rpc-mumbai.maticvigil.com/'
+      })
+    })
+  ]
 )
 
 const wagmiConfig = createConfig({
@@ -93,6 +100,13 @@ export const useWeb3 = defineStore('Web3', {
         ...contractConf,
         walletClient: ethereumClient
       })
+
+      setTimeout(() => {
+        console.log(this.contract)
+      }, 2000)
+
+      console.log({ chains, publicClient, webSocketPublicClient })
+      console.log('teste')
 
       this.$patch({
         maxSupply: Number(await this.contract.read.maxSupply()),
